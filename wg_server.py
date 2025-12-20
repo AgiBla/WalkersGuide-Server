@@ -12,6 +12,9 @@ from webserver.db_control import DBControl
 from webserver.constants import server_version, supported_api_version_list, supported_map_version_list
 from webserver.helper import exit, pretty_print_table, send_email
 
+# import test scripts
+from test.test_translations  import run_tests as run_translation_tests
+
 
 def list_map_ids():
     return ', '.join(list(Config().maps.keys()))
@@ -159,6 +162,10 @@ def show_statistics():
     print(pretty_print_table(table))
 
 
+def run_all_test_cases():
+    sys.exit(run_translation_tests())
+
+
 def print_version_info():
     return "WalkersGuide-Server version: %s     (API versions: %s;   Map versions: %s)" \
             % (server_version, ','.join([str(x) for x in supported_api_version_list]),
@@ -242,6 +249,13 @@ def main():
             description="Show usage statistics",
             help="Show usage statistics")
 
+    # tests
+    test_aliases = ['test']
+    subparsers.add_parser(
+            "run-test-cases", aliases=test_aliases,
+            description="Run tests",
+            help="Run tests")
+
     args = parser.parse_args()
 
     # create or backup maps
@@ -288,6 +302,10 @@ def main():
     elif       args.action == "statistics" \
             or args.action in statistics_aliases:
         show_statistics()
+
+    elif       args.action == "run-test-cases" \
+            or args.action in test_aliases:
+        run_all_test_cases()
 
 
 if __name__ == '__main__':
