@@ -458,8 +458,8 @@ class POI:
                                     '{"arts_centre", "Brothel", "Casino", "gambling",
                                       "Cinema", "community_centre", "bar", "pub",
                                       "planetarium", "social_centre", "social_club", "nightclub",
-                                      "stripclub", "studio", "swingerclub", "theatre",
-                                      "youth_centre", "events_venue", "conference_centre",
+                                      "stripclub", "studio", "swingerclub", "theatre", "youth_centre",
+                                      "events_venue", "exhibition_centre", "conference_centre",
                                       "love_hotel", "public_bookcase", "music_venue", "stage"}')
                                 OR tags ? 'club'
                                 OR tags ? 'attraction'
@@ -472,7 +472,8 @@ class POI:
                     tag_query_list.append(
                             sql.SQL(
                                 """
-                                tags->'leisure' = ANY(
+                                   tags->'amenity' = ANY('{"dive_centre", "surf_school"}')
+                                OR tags->'leisure' = ANY(
                                   '{"bathing_place", "bowling_alley", "dog_park", "fishing",
                                     "fitness_centre", "fitness_station", "golf_course",
                                     "high_ropes_course", "horse_riding", "ice_rink",
@@ -545,7 +546,7 @@ class POI:
                                 tags->'amenity' = ANY(
                                     '{"pharmacy", "doctors", "dentist", "hospital", "health_centre",
                                     "baby_hatch", "clinic", "nursing_home", "social_facility", "public_bath",
-                                    "retirement_home", "sauna", "veterinary"}')
+                                    "retirement_home", "sauna", "veterinary", "dressing_room"}')
                                 OR tags ? 'healthcare'
                                 or tags->'office' = 'therapist'
                                 """))
@@ -596,7 +597,8 @@ class POI:
                                 """
                                 tags->'amenity' = ANY(
                                     '{"bicycle_rental", "boat_rental", "boat_sharing",
-                                    "car_rental", "car_sharing", "internet_cafe", "post_office", "veterinary"}')
+                                      "charging_station", "car_rental", "car_sharing",
+                                      "internet_cafe", "photo_booth", "post_office", "veterinary"}')
                                 or tags ? 'craft'
                                 OR tags ? 'office'
                                 """))

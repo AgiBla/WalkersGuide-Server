@@ -3,8 +3,10 @@ Translation Completeness Test Script
 
 This script verifies that all translation functions contain the same
 category/tag combinations to ensure no translations are missing.
+It also checks for tag uniqueness within categories
 """
 
+import re
 import sys
 import inspect
 from collections import defaultdict
@@ -25,38 +27,33 @@ def extract_translations_from_function(func):
     Returns a dictionary: {category: set(tags)}
     """
     translations = defaultdict(set)
-    
+
+    def _add_to_category_set_if_tag_is_unique(category, tag):
+        if tag not in translations[category]:
+            translations[category].add(tag)
+        else:
+            raise ValueError(f"{func.__name__}: Tag duplicate detected in category {category}: {tag}")
+
     # Get the source code of the function
     source = inspect.getsource(func)
     lines = source.split('\n')
-    
+
     current_category = None
-    
     for line in lines:
         line = line.strip()
-        
+
         # Detect category check
         if line.startswith('if category == "'):
             current_category = line.split('"')[1]
-        
-        # Detect tag check and return statement
-        if current_category and line.startswith('if tag ==') and 'return' in line:
-            # Extract tag value
-            tag_part = line.split('if tag ==')[1].split(':')[0].strip()
-            
-            # Handle simple tag check: if tag == "value"
-            if tag_part.startswith('"'):
-                tag = tag_part.strip('"')
-                translations[current_category].add(tag)
-            
-            # Handle tag in list check: if tag in ["value1", "value2"]
-            elif tag_part.startswith('['):
-                # Extract all tags from the list
-                tags_str = tag_part.strip('[]')
-                tags = [t.strip().strip('"') for t in tags_str.split(',')]
-                for tag in tags:
-                    translations[current_category].add(tag)
-    
+
+        # Detect tag if condition
+        if current_category and line.startswith('if tag =='):
+            # Extract tags
+            pattern = r'if\s+tag\s+(?:==|in)\s+((?:"[^"]*"|\[[^\]]*\])+)\s*:.*'
+            for match in re.finditer(pattern, line):
+                for tag in re.findall(r'"([^"]+)"', match.group(1)):
+                    _add_to_category_set_if_tag_is_unique(current_category, tag)
+
     return translations
 
 
@@ -134,10 +131,14 @@ def run_tests():
     print("\n Extracting translations from each function...")
     
     # Extract translations from each function
-    english_trans = extract_translations_from_function(translate_english)
-    german_trans = extract_translations_from_function(translate_german)
-    spanish_trans = extract_translations_from_function(translate_spanish)
-    ukrainian_trans = extract_translations_from_function(translate_ukrainian)
+    try:
+        english_trans = extract_translations_from_function(translate_english)
+        german_trans = extract_translations_from_function(translate_german)
+        spanish_trans = extract_translations_from_function(translate_spanish)
+        ukrainian_trans = extract_translations_from_function(translate_ukrainian)
+    except ValueError as e:
+        print(f"  {e}")
+        sys.exit(1)
     
     # Print summaries
     print("\n" + "=" * 70)
@@ -177,7 +178,7 @@ def run_tests():
     # Final result
     print("\n" + "=" * 70)
     if all_match:
-        print("SUCCESS: All translations are complete and consistent!")
+        print("SUCCESS: All translations are complete, consistent and unique!")
         print("=" * 70)
         return 0
     else:
