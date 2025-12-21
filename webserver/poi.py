@@ -1431,12 +1431,8 @@ class POI:
 
         if "amenity" in tags:
             if "cuisine" in tags:
-                translated_cuisines = list()
-                cuisines = tags['cuisine']
-                for cuisine in cuisines.split(";") if ";" in cuisines else [cuisines]:
-                    translated_cuisine = self.translator.translate("cuisine", cuisine)
-                    if translated_cuisine not in translated_cuisines:
-                        translated_cuisines.append(translated_cuisine)
+                translated_cuisines = self.split_string_by_delimiter_translate_and_return_as_list(
+                        tags['cuisine'], "cuisine", ";")
                 poi['sub_type'] = "%s (%s)" % (self.translator.translate("amenity", tags['amenity']),
                                                ', '.join(translated_cuisines))
             elif "shelter_type" in tags:
@@ -1460,8 +1456,10 @@ class POI:
             poi['sub_type'] = self.translator.translate("historic", tags['historic'])
         elif "leisure" in tags:
             if "sport" in tags:
+                translated_sports = self.split_string_by_delimiter_translate_and_return_as_list(
+                        tags['sport'], "sport", ";")
                 poi['sub_type'] = "%s (%s)" % (self.translator.translate("leisure", tags['leisure']),
-                        self.translator.translate("sport", tags['sport']))
+                                               ', '.join(translated_sports))
             else:
                 poi['sub_type'] = self.translator.translate("leisure", tags['leisure'])
         elif "man_made" in tags:
@@ -1863,6 +1861,16 @@ class POI:
                 addr_list.append(city)
             addr_dict['display_name'] = ', '.join(addr_list)
         return addr_dict
+
+
+    def split_string_by_delimiter_translate_and_return_as_list(
+            self, string_value, category_name_for_translation, delimiter=";"):
+        translated_items = list()
+        for item in string_value.split(delimiter):
+            translated_item = self.translator.translate(category_name_for_translation, item)
+            if translated_item not in translated_items:
+                translated_items.append(translated_item)
+        return translated_items
 
 
     def insert_into_poi_list(self, poi_list, entry, lat, lon):
