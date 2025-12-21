@@ -1428,10 +1428,17 @@ class POI:
         # type and subtype
         poi['type'] = "poi"
         poi['sub_type'] = ""
+
         if "amenity" in tags:
             if "cuisine" in tags:
+                translated_cuisines = list()
+                cuisines = tags['cuisine']
+                for cuisine in cuisines.split(";") if ";" in cuisines else [cuisines]:
+                    translated_cuisine = self.translator.translate("cuisine", cuisine)
+                    if translated_cuisine not in translated_cuisines:
+                        translated_cuisines.append(translated_cuisine)
                 poi['sub_type'] = "%s (%s)" % (self.translator.translate("amenity", tags['amenity']),
-                        self.translator.translate("cuisine", tags['cuisine']))
+                                               ', '.join(translated_cuisines))
             elif "shelter_type" in tags:
                 poi['sub_type'] = "%s (%s)" % (self.translator.translate("amenity", tags['amenity']),
                         self.translator.translate("shelter_type", tags['shelter_type']))
@@ -1440,6 +1447,7 @@ class POI:
                         self.translator.translate("vending", tags['vending']))
             else:
                 poi['sub_type'] = self.translator.translate("amenity", tags['amenity'])
+
         elif "bridge" in tags:
             poi['sub_type'] = self.translator.translate("bridge", tags['bridge'])
         elif "tourism" in tags:
@@ -1460,6 +1468,7 @@ class POI:
             poi['sub_type'] = self.translator.translate("man_made", tags['man_made'])
         elif "natural" in tags:
             poi['sub_type'] = self.translator.translate("natural", tags['natural'])
+
         elif "healthcare" in tags:
             if "healthcare:speciality" in tags \
                     and tags['healthcare:speciality'].lower() != "general":
@@ -1470,10 +1479,13 @@ class POI:
                 poi['sub_type'] = self.translator.translate("healthcare", tags['healthcare'])
         elif "craft" in tags:
             poi['sub_type'] = self.translator.translate("craft", tags['craft'])
+        elif "club" in tags:
+            poi['sub_type'] = self.translator.translate("club", tags['club'])
         elif "office" in tags:
             poi['sub_type'] = self.translator.translate("office", tags['office'])
         elif "shop" in tags:
             poi['sub_type'] = self.translator.translate("shop", tags['shop'])
+
         elif "aeroway" in tags:
             poi['sub_type'] = self.translator.translate("aeroway", tags['aeroway'])
         elif "highway" in tags and tags['highway'] == "elevator":
